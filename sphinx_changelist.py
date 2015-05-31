@@ -109,7 +109,7 @@ def process(app, doctree, fromdocname):
         for ver, comment in node.versions:
             sub_nodes = content.get(ver, [])
             line = '%s %s' % (ver, comment)
-            sorted_content.append(nodes.subtitle(line, line))
+            sorted_content.append(nodes.title(line, line))
             sorted_content.extend(sub_nodes)
 
         node.replace_self(sorted_content)
