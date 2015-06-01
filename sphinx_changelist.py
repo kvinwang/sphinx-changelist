@@ -1,5 +1,5 @@
 __author__ = 'loong'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 from sphinx.environment import NoUri
 from docutils import nodes
@@ -26,10 +26,16 @@ class ChangeList(Directive):
         node = change_list('')
         node.versions = []
         for line in self.content:
-            ver, comment = line.split(' ', 1)
-            ver = ver.strip()
-            comment = comment.strip()
-            node.versions.append((ver, comment))
+            if not line.strip():
+                continue
+            if line[0].isspace():
+                ver, comment, items = node.versions[-1]
+                items.append(line.strip())
+            else:
+                ver, comment = line.split(' ', 1)
+                ver = ver.strip()
+                comment = comment.strip()
+                node.versions.append((ver, comment, []))
         return [node]
 
 
@@ -72,7 +78,7 @@ def process(app, doctree, fromdocname):
 
     for version in version_changes:
         for target, change in version_changes[version]:
-            para = nodes.paragraph(classes=['changes-source'])
+            para = nodes.line(classes=['changes-source'])
 
             # Create a reference
             newnode = nodes.reference('', '', internal=True)
@@ -106,10 +112,14 @@ def process(app, doctree, fromdocname):
 
     for node in changelists:
         sorted_content = []
-        for ver, comment in node.versions:
+        for ver, comment, items in node.versions:
             sub_nodes = content.get(ver, [])
             line = '%s %s' % (ver, comment)
             sorted_content.append(nodes.title(line, line))
+            for item in items:
+                line = nodes.line()
+                line.append(nodes.Text(item))
+                sorted_content.append(line)
             sorted_content.extend(sub_nodes)
 
         node.replace_self(sorted_content)
